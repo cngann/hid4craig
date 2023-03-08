@@ -1,5 +1,7 @@
-package hid4java;
+package com.quintron.input.hid4java;
 
+import com.quintron.input.PTTDevice;
+import com.quintron.input.PttDeviceInterface;
 import org.hid4java.HidDevice;
 import org.hid4java.HidManager;
 import org.hid4java.HidServices;
@@ -7,17 +9,15 @@ import org.hid4java.HidServicesListener;
 import org.hid4java.HidServicesSpecification;
 import org.hid4java.event.HidServicesEvent;
 
-public class Hid4JavaListener implements HidServicesListener {
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class Hid4JavaListener implements HidServicesListener, PttDeviceInterface {
     HidServices hidServices;
 
     public Hid4JavaListener() {
-        HidServicesSpecification hidServicesSpecification = new HidServicesSpecification();
-        hidServicesSpecification.setAutoStart(false);
-        hidServicesSpecification.setAutoDataRead(true);
-        hidServicesSpecification.setDataReadInterval(100);
-        hidServices = HidManager.getHidServices(hidServicesSpecification);
-        hidServices.addHidServicesListener(this);
-        hidServices.start();
+        initPttDevices();
     }
 
     @Override public void hidDeviceAttached(HidServicesEvent hidServicesEvent) {
@@ -40,6 +40,7 @@ public class Hid4JavaListener implements HidServicesListener {
     }
 
     public void start() {
+        hidServices.start();
         System.out.println("Started");
     }
 
@@ -54,6 +55,42 @@ public class Hid4JavaListener implements HidServicesListener {
         for (Byte aByte : bytes) {
             System.out.printf("%02x ", aByte);
         }
-        System.out.println("");
+        System.out.println();
+    }
+
+    @Override
+    public PTTDevice initPttDevices() {
+        HidServicesSpecification hidServicesSpecification = new HidServicesSpecification();
+        hidServicesSpecification.setAutoStart(false);
+        hidServicesSpecification.setAutoDataRead(true);
+        hidServicesSpecification.setDataReadInterval(100);
+        hidServices = HidManager.getHidServices(hidServicesSpecification);
+        hidServices.addHidServicesListener(this);
+    }
+
+    @Override
+    public String readInput() {
+        return null;
+    }
+
+    @Override
+    public void start(PTTDevice device) {
+        hidServices.start();
+    }
+
+    @Override
+    public void stop(PTTDevice device) {
+
+    }
+
+    @Override
+    public List<String> getDevices() {
+        return Arrays.asList(hidServices.getAttachedHidDevices().stream().filter(this::isPttDevice).toArray());
+        return null;
+    }
+
+    @Override
+    public <T> T getListener() {
+        return null;
     }
 }
