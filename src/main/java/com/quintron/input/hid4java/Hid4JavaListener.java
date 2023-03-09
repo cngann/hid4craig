@@ -1,7 +1,6 @@
 package com.quintron.input.hid4java;
 
-import com.quintron.input.PTTDevice;
-import com.quintron.input.PttDeviceInterface;
+import com.quintron.input.PttDevice;
 import org.hid4java.HidDevice;
 import org.hid4java.HidManager;
 import org.hid4java.HidServices;
@@ -9,11 +8,10 @@ import org.hid4java.HidServicesListener;
 import org.hid4java.HidServicesSpecification;
 import org.hid4java.event.HidServicesEvent;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Hid4JavaListener implements HidServicesListener, PttDeviceInterface {
+public class Hid4JavaListener implements HidServicesListener, PttDevice {
     HidServices hidServices;
 
     public Hid4JavaListener() {
@@ -39,6 +37,7 @@ public class Hid4JavaListener implements HidServicesListener, PttDeviceInterface
         System.out.println("Device Failed: " + hidDevice.getManufacturer() + " " + hidDevice.getProduct());
     }
 
+    @Override
     public void start() {
         hidServices.start();
         System.out.println("Started");
@@ -59,7 +58,7 @@ public class Hid4JavaListener implements HidServicesListener, PttDeviceInterface
     }
 
     @Override
-    public PTTDevice initPttDevices() {
+    public void initPttDevices() {
         HidServicesSpecification hidServicesSpecification = new HidServicesSpecification();
         hidServicesSpecification.setAutoStart(false);
         hidServicesSpecification.setAutoDataRead(true);
@@ -74,23 +73,17 @@ public class Hid4JavaListener implements HidServicesListener, PttDeviceInterface
     }
 
     @Override
-    public void start(PTTDevice device) {
-        hidServices.start();
-    }
-
-    @Override
-    public void stop(PTTDevice device) {
+    public void stop() {
 
     }
 
     @Override
     public List<String> getDevices() {
-        return Arrays.asList(hidServices.getAttachedHidDevices().stream().filter(this::isPttDevice).toArray());
-        return null;
+        return hidServices.getAttachedHidDevices().stream().map(HidDevice::getId).collect(Collectors.toList());
     }
 
     @Override
-    public <T> T getListener() {
-        return null;
+    public String getListener() {
+        return this.getClass().getName();
     }
 }
