@@ -69,7 +69,9 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
 
     @Override
     public String readInput() {
-        return null;
+        while (true) {
+            // do nothing
+        }
     }
 
     @Override
