@@ -2,9 +2,6 @@ package com.quintron.input;
 
 import com.quintron.input.hid4java.Hid4JavaListener;
 import com.quintron.input.jinput.JInput;
-import com.quintron.input.jinput.JinputListener;
-
-import java.util.Arrays;
 
 public class PTTDeviceTest {
     public static void main(String[] args) {
