@@ -50,7 +50,7 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
     @Override public void hidDataReceived(HidServicesEvent hidServicesEvent) {
         HidDevice hidDevice = hidServicesEvent.getHidDevice();
         byte[] bytes = hidServicesEvent.getDataReceived();
-        System.out.print(hidDevice.getProduct() + " ");
+        System.out.print(hidDevice.getProduct() + " HID Data Rx: ");
         for (Byte aByte : bytes) {
             System.out.printf("%02x ", aByte);
         }
@@ -62,7 +62,7 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
         HidServicesSpecification hidServicesSpecification = new HidServicesSpecification();
         hidServicesSpecification.setAutoStart(false);
         hidServicesSpecification.setAutoDataRead(true);
-        hidServicesSpecification.setDataReadInterval(100);
+        hidServicesSpecification.setDataReadInterval(50);
         hidServices = HidManager.getHidServices(hidServicesSpecification);
         hidServices.addHidServicesListener(this);
     }
