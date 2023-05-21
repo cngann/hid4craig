@@ -8,11 +8,14 @@ import org.hid4java.HidServicesListener;
 import org.hid4java.HidServicesSpecification;
 import org.hid4java.event.HidServicesEvent;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Hid4JavaListener implements HidServicesListener, PttDevice {
-    HidServices hidServices;
+    public HidServices hidServices;
+    List<String> friendlyDeviceNames = new ArrayList<>();
 
     public Hid4JavaListener() {
         initPttDevices();
@@ -41,6 +44,21 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
     public void start() {
         hidServices.start();
         System.out.println("Started");
+    }
+
+    public void printDevices() {
+        List<HidDevice> hidDeviceList = hidServices.getAttachedHidDevices();
+        System.out.println("PttDevices: " + hidDeviceList.size() + " devices");
+        for (int i = 0; i < hidDeviceList.size(); i++) {
+            HidDevice h = hidDeviceList.get(i);
+            boolean b = isPttDevice(h);
+            String s = "[" + i + "] mfg=" + h.getManufacturer() + ", rel=" + h.getReleaseNumber() +
+                    ", usage=" + h.getUsage() + ", page=" + h.getUsagePage() + ", vid=" + h.getVendorId() +
+                    ", sn=" + h.getSerialNumber() + ", product=" + h.getProduct();
+            if (b)
+                s += ", PTT DEVICE";
+            System.out.println(s);
+        }
     }
 
     public boolean isPttDevice(HidDevice device) {

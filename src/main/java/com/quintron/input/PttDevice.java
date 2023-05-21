@@ -1,5 +1,8 @@
 package com.quintron.input;
 
+import org.hid4java.HidDevice;
+import org.hid4java.HidServices;
+
 import java.util.List;
 
 public interface PttDevice {
@@ -8,6 +11,7 @@ public interface PttDevice {
     void start();
     void stop();
     List<String> getDevices();
+    void printDevices();
 
     String getListener();
 }
