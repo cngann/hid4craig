@@ -1,5 +1,6 @@
 package com.quintron.input.hid4java;
 
+import com.quintron.input.PTTDeviceTest;
 import com.quintron.input.PttDevice;
 import org.hid4java.HidDevice;
 import org.hid4java.HidManager;
@@ -8,6 +9,10 @@ import org.hid4java.HidServicesListener;
 import org.hid4java.HidServicesSpecification;
 import org.hid4java.event.HidServicesEvent;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,11 +32,27 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
             hidDevice.open();
         }
         System.out.println("Device Attached: " + hidDevice.getManufacturer() + " " + hidDevice.getProduct());
+        if (isPttDevice(hidDevice)) {
+            if (PTTDeviceTest.existsPttIndexMapElement(hidDevice.getProduct()))
+                return;
+            PTTDeviceTest.addPttIndexMapElement(hidDevice.getProduct());
+            int index = PTTDeviceTest.getPttIndexMapElement(hidDevice.getProduct());
+            PTTDeviceTest.appendPttFile("" + index + ", " + hidDevice.getProduct());
+        }
     }
 
     @Override public void hidDeviceDetached(HidServicesEvent hidServicesEvent) {
         HidDevice hidDevice = hidServicesEvent.getHidDevice();
+        if (isPttDevice(hidDevice)) {
+            // Remove the element from the map
+//            PTTDeviceTest.removePttIndexMapElement(hidDevice.getProduct());
+            // Rebuild the file
+
+            // remove the pttOn file if exists
+            PTTDeviceTest.deletePttOnFile(hidDevice.getProduct());
+        }
         hidDevice.close();
+
         System.out.println("Device Detached: " + hidDevice.getManufacturer() + " " + hidDevice.getProduct());
     }
 
@@ -51,12 +72,12 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
         System.out.println("PttDevices: " + hidDeviceList.size() + " devices");
         for (int i = 0; i < hidDeviceList.size(); i++) {
             HidDevice h = hidDeviceList.get(i);
-            boolean b = isPttDevice(h);
-            String s = "[" + i + "] mfg=" + h.getManufacturer() + ", rel=" + h.getReleaseNumber() +
-                    ", usage=" + h.getUsage() + ", page=" + h.getUsagePage() + ", vid=" + h.getVendorId() +
-                    ", sn=" + h.getSerialNumber() + ", product=" + h.getProduct();
-            if (b)
-                s += ", PTT DEVICE";
+            if (!isPttDevice(h))
+                continue;
+            String s = "" + i + ": mfg=[" + h.getManufacturer() + "], rel=[" + h.getReleaseNumber() +
+                    "], usage=[" + h.getUsage() + "], page=[" + h.getUsagePage() + "], vid=[" + h.getVendorId() +
+                    "], sn=[" + h.getSerialNumber() + "], product=[" + h.getProduct() + "]" +
+                    ", index=" +  + PTTDeviceTest.getPttIndexMapElement(h.getProduct());
             System.out.println(s);
         }
     }
@@ -67,10 +88,27 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
 
     @Override public void hidDataReceived(HidServicesEvent hidServicesEvent) {
         HidDevice hidDevice = hidServicesEvent.getHidDevice();
+        if (!isPttDevice(hidDevice)) {
+            System.out.println("hidDataReceived: not a PTT device, product=" + hidDevice.getProduct());
+            return;
+        }
         byte[] bytes = hidServicesEvent.getDataReceived();
-        System.out.print(hidDevice.getProduct() + " HID Data Rx: ");
+        int index = PTTDeviceTest.getPttIndexMapElement(hidDevice.getProduct());
+        int i = 0;
+        int pttOn = 0;
+        int valueIndex = 0;
+        if (bytes[0] == 9)
+            valueIndex = 1;
+        pttOn = bytes[valueIndex];
+        if (pttOn == 1)
+            PTTDeviceTest.createFile(hidDevice.getProduct());
+        else
+            PTTDeviceTest.deletePttOnFile(hidDevice.getProduct());
+        System.out.print("index=" + index + ", pttOn=" + pttOn + ", [" + hidDevice.getProduct() + "] HID Data Rx: ");
         for (Byte aByte : bytes) {
             System.out.printf("%02x ", aByte);
+            if (++i >= 2)
+                break;
         }
         System.out.println();
     }
