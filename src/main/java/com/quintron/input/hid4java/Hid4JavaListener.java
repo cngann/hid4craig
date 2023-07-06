@@ -83,7 +83,8 @@ public class Hid4JavaListener implements HidServicesListener, PttDevice {
     }
 
     public boolean isPttDevice(HidDevice device) {
-        return device.getUsagePage() == 0x1 && device.getUsage() == 0x4;
+        return (device.getUsagePage() == 0x1);
+//        && (device.getUsage() == 0x4 || device.getUsage() == 0x4);
     }
 
     @Override public void hidDataReceived(HidServicesEvent hidServicesEvent) {
